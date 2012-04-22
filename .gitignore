@@ -1,0 +1,15 @@
+*.pyc
+*.pyo
+*~
+db.dat
+*.swp
+pip-*.gz
+vtenv
+bin
+data
+eggs
+.project
+.pydevproject
+fab
+.project
+.pydevproject
