@@ -25,11 +25,10 @@ class RadioNamespace(BaseNamespace, RoomsMixin, BroadcastMixin):
         
         channel = 'radio.%s' % (radio_id)
         r.subscribe(channel)
-
+        print "subscribing to %s" % (channel)
         for m in r.listen():
-            if m['type'] == 'message':
-                data = loads(m['data'])
-                self.emit("wall_event", data)
+            print m
+            self.emit('wall_event', m)
 
 def handle(environ, start_response):
     return socketio_manage(environ, {'/radio': RadioNamespace})
