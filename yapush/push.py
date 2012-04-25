@@ -8,9 +8,6 @@ import json
 import redis
 monkey.patch_all()
 
-HOST = '0.0.0.0'
-PORT = 9000
-
 class RadioNamespace(BaseNamespace, RoomsMixin, BroadcastMixin):
     def on_subscribe(self, data):
         print "subscribe! : %s" % (data)
@@ -33,5 +30,3 @@ class RadioNamespace(BaseNamespace, RoomsMixin, BroadcastMixin):
 def handle(environ, start_response):
     return socketio_manage(environ, {'/radio': RadioNamespace})
 
-print "Serving on http://%s:%s'" % (HOST, PORT)
-SocketIOServer((HOST, PORT), handle, policy_server=False).serve_forever()
