@@ -29,7 +29,6 @@ class RadioNamespace(BaseNamespace, RoomsMixin, BroadcastMixin):
         self.spawn(self.listener, radio_id)
         
     def on_unsubscribe(self, data):
-        radio_id = data['radio_id']
         self.kill_local_jobs()
         
     def listener(self, radio_id):
