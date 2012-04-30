@@ -1,5 +1,5 @@
 from gevent import Greenlet, monkey, pywsgi, queue
-from socketio import SocketIOServer, socketio_manage
+from socketio import socketio_manage
 from socketio.mixins import RoomsMixin, BroadcastMixin
 from socketio.namespace import BaseNamespace
 import datetime
