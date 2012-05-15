@@ -43,5 +43,9 @@ class RadioNamespace(BaseNamespace, RoomsMixin, BroadcastMixin):
             self.emit('radio_event', m)
 
 def handle(environ, start_response):
+    if environ['PATH_INFO'] == '/status/':
+        start_response('200 OK', [('Content-Type', 'text/plain')])
+        return ["OK"]
+    
     return socketio_manage(environ, {'/radio': RadioNamespace})
 
