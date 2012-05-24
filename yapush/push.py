@@ -5,10 +5,12 @@ from socketio.namespace import BaseNamespace
 import datetime
 import gevent
 import json
-import redis
-monkey.patch_all()
-
 import logging
+from logging.handlers import RotatingFileHandler
+import redis
+import settings
+
+monkey.patch_all()
 
 FORMAT = '%(asctime)-15s %(message)s'
 formatter = logging.Formatter(FORMAT)
@@ -20,10 +22,14 @@ console_handler = logging.StreamHandler()
 console_handler.setFormatter(formatter)
 log.addHandler(console_handler)
 
+file_handler = RotatingFileHandler(settings.LOG_FILENAME, maxBytes=1024*10, backupCount=10)
+file_handler.setFormatter(formatter)
+log.addHandler(file_handler)
+
 
 class RadioNamespace(BaseNamespace, RoomsMixin, BroadcastMixin):
     def on_subscribe(self, data):
-        print "subscribe! : %s" % (data)
+        log.debug('receveid on_subscribe: %s' % (data))
         
         radio_id = data['radio_id']
         self.spawn(self.listener, radio_id)
@@ -32,14 +38,14 @@ class RadioNamespace(BaseNamespace, RoomsMixin, BroadcastMixin):
         self.kill_local_jobs()
         
     def listener(self, radio_id):
-        r = redis.StrictRedis()
+        r = redis.StrictRedis(host=settings.REDIS_HOST, db=settings.REDIS_DB)
         r = r.pubsub()
 
         channel = 'radio.%s' % (radio_id)
         r.subscribe(channel)
-        print "subscribing to %s" % (channel)
+        log.debug("subscribing to %s" % (channel))
         for m in r.listen():
-            print m
+            log.debug('emitting %s' % m)
             self.emit('radio_event', m)
 
 def handle(environ, start_response):
