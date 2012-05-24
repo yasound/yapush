@@ -55,8 +55,7 @@ def deploy():
         run("git pull")
         run("./vtenv.sh")
     with cd("%s/%s" % (WEBSITE_PATH, APP_PATH)):
-        run("/etc/init.d/yapush stop")
-        run("/etc/init.d/yapush start")
+        run("/etc/init.d/yapush restart")
 
 
 
