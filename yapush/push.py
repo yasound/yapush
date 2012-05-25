@@ -12,15 +12,21 @@ from logger import Logger
 monkey.patch_all()
 
 
-class RadioNamespace(BaseNamespace, RoomsMixin, BroadcastMixin):
+class RadioNamespace(BaseNamespace):
+    def recv_connect(self):
+        Logger().log.debug('%s: received connect' % (self.environ['REMOTE_ADDR']))
+
+    def recv_message(self, data):
+        Logger().log.debug('%s: received message: %s' % (self.environ['REMOTE_ADDR'], data))
+            
     def on_subscribe(self, data):
-        Logger().log.debug('receveid on_subscribe: %s' % (data))
+        Logger().log.debug('%s: received on_subscribe: %s' % (self.environ['REMOTE_ADDR'], data))
         
         radio_id = data['radio_id']
         self.spawn(self.listener, radio_id)
         
     def on_unsubscribe(self, data):
-        Logger().log.debug('unsubscribe received: %s' % (data))
+        Logger().log.debug('%s: unsubscribe received: %s' % (self.environ['REMOTE_ADDR'], data))
         self.kill_local_jobs()
         
     def listener(self, radio_id):
@@ -29,9 +35,9 @@ class RadioNamespace(BaseNamespace, RoomsMixin, BroadcastMixin):
 
         channel = 'radio.%s' % (radio_id)
         r.subscribe(channel)
-        Logger().log.debug("subscribing to %s" % (channel))
+        Logger().log.debug("%s: subscribing to %s" % (self.environ['REMOTE_ADDR'], channel))
         for m in r.listen():
-            Logger().log.debug('emitting %s' % m)
+            Logger().log.debug('%s: emitting %s' % (self.environ['REMOTE_ADDR'], m))
             self.emit('radio_event', m)
 
 def handle(environ, start_response):
