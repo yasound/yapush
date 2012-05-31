@@ -50,16 +50,18 @@ class UserNamespace(BaseNamespace):
         Logger().log.debug('%s: received message: %s' % (self.environ['REMOTE_ADDR'], data))
             
     def on_subscribe(self, data):
-        Logger().log.debug('%s: received on_subscribe: %s' % (self.environ['REMOTE_ADDR'], data))
+        Logger().log.debug('%s: UserNamespace - received on_subscribe: %s' % (self.environ['REMOTE_ADDR'], data))
         
         cookies = self.environ['HTTP_COOKIE']
         C = Cookie.SimpleCookie()
         C.load(cookies)
         if not 'sessionid' in C:
+            Logger().log.debug('missing sessionid')
             return
         
         sessionid = C['sessionid'].value
         if not sessionid:
+            Logger().log.debug('missing sessionid value')
             return
         payload = {
             'sessionid': sessionid,
@@ -68,6 +70,7 @@ class UserNamespace(BaseNamespace):
         headers = {'content-type': 'application/json'}
         r = requests.post(settings.AUTH_SERVER, data=json.dumps(payload), headers=headers, verify=False)
         if not r.status_code == 200:
+            Logger().log.debug('user not authenticated: %d' % (r.status_code))
             return None
         result = r.text
         data = json.loads(result)
