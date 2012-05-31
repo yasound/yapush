@@ -7,6 +7,8 @@ import gevent
 import json
 import redis
 import settings
+import Cookie
+import requests
 from logger import Logger
 
 monkey.patch_all()
@@ -40,10 +42,57 @@ class RadioNamespace(BaseNamespace):
             Logger().log.debug('%s: emitting %s' % (self.environ['REMOTE_ADDR'], m))
             self.emit('radio_event', m)
 
+class UserNamespace(BaseNamespace):
+    def recv_connect(self):
+        Logger().log.debug('%s: received connect' % (self.environ['REMOTE_ADDR']))
+
+    def recv_message(self, data):
+        Logger().log.debug('%s: received message: %s' % (self.environ['REMOTE_ADDR'], data))
+            
+    def on_subscribe(self, data):
+        Logger().log.debug('%s: received on_subscribe: %s' % (self.environ['REMOTE_ADDR'], data))
+        
+        cookies = self.environ['HTTP_COOKIE']
+        C = Cookie.SimpleCookie()
+        C.load(cookies)
+        if not 'sessionid' in C:
+            return
+        
+        sessionid = C['sessionid'].value
+        if not sessionid:
+            return
+        payload = {
+            'sessionid': sessionid,
+            'key':settings.AUTH_SERVER_KEY
+        }
+        headers = {'content-type': 'application/json'}
+        r = requests.post(settings.AUTH_SERVER, data=json.dumps(payload), headers=headers, verify=False)
+        if not r.status_code == 200:
+            return None
+        result = r.text
+        data = json.loads(result)
+        user_id = data['user_id']
+        self.spawn(self.listener, user_id)
+        
+    def on_unsubscribe(self, data):
+        Logger().log.debug('%s: unsubscribe received: %s' % (self.environ['REMOTE_ADDR'], data))
+        self.kill_local_jobs()
+        
+    def listener(self, user_id):
+        r = redis.StrictRedis(host=settings.REDIS_HOST, db=settings.REDIS_DB)
+        r = r.pubsub()
+
+        channel = 'user.%s' % (user_id)
+        r.subscribe(channel)
+        Logger().log.debug("%s: subscribing to %s" % (self.environ['REMOTE_ADDR'], channel))
+        for m in r.listen():
+            Logger().log.debug('%s: emitting %s' % (self.environ['REMOTE_ADDR'], m))
+            self.emit('user_event', m)
+
 def handle(environ, start_response):
     if environ['PATH_INFO'] == '/status/':
         start_response('200 OK', [('Content-Type', 'text/plain')])
         return ["OK"]
     
-    return socketio_manage(environ, {'/radio': RadioNamespace})
+    return socketio_manage(environ, {'/radio': RadioNamespace, '/me': UserNamespace})
 
