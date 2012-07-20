@@ -1,5 +1,5 @@
 # Put here all your python libs dependencies before vtenv.sh
 gevent
 redis
-git+https://github.com/abourget/gevent-socketio.git#egg=gevent-socketio
+-e git+https://github.com/abourget/gevent-socketio.git#egg=gevent-socketio
 requests
