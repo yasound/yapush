@@ -13,9 +13,11 @@ from push import handle
 from logger import Logger
 
 if __name__ == "__main__":
+    transports = settings.TRANSPORTS
+    
     if settings.PRODUCTION_MODE:
         Logger().log.info("Serving on https://%s:%s'" % (settings.HOST, settings.PORT))
-        SocketIOServer((settings.HOST, settings.PORT), handle, policy_server=False, keyfile=settings.KEY_FILE, certfile=settings.CERT_FILE).serve_forever()
+        SocketIOServer((settings.HOST, settings.PORT), handle, transports=transports, policy_server=False, keyfile=settings.KEY_FILE, certfile=settings.CERT_FILE).serve_forever()
     else:
         Logger().log.info("Serving on http://%s:%s'" % (settings.HOST, settings.PORT))
-        SocketIOServer((settings.HOST, settings.PORT), handle, policy_server=False).serve_forever()
+        SocketIOServer((settings.HOST, settings.PORT), handle, transports=transports, policy_server=False).serve_forever()

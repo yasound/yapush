@@ -54,17 +54,11 @@ class UserNamespace(BaseNamespace):
     def on_subscribe(self, data):
         Logger().log.debug('%s: UserNamespace - received on_subscribe: %s' % (self.environ['REMOTE_ADDR'], data))
         
-        cookies = self.environ['HTTP_COOKIE']
-        C = Cookie.SimpleCookie()
-        C.load(cookies)
-        if not 'sessionid' in C:
-            Logger().log.debug('missing sessionid')
-            return
-        
-        sessionid = C['sessionid'].value
+        sessionid = data.get('sessionid')
         if not sessionid:
             Logger().log.debug('missing sessionid value')
             return
+        
         payload = {
             'sessionid': sessionid,
             'key':settings.AUTH_SERVER_KEY
