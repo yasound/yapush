@@ -11,6 +11,15 @@ PORT = 9000
 CERT_FILE = '/etc/nginx/ssl/server.crt'
 KEY_FILE = '/etc/nginx/ssl/server.key'
 
+# transport methods allowed
+TRANSPORTS = (
+    'websocket',
+    'htmlfile',
+    'xhr-multipart',
+    'xhr-polling',
+    'jsonp-polling'
+)
+
 REDIS_HOST = 'localhost'
 REDIS_DB = 0
 
