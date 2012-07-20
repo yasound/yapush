@@ -39,6 +39,8 @@ class RadioNamespace(BaseNamespace):
         r.subscribe(channel)
         Logger().log.debug("%s: subscribing to %s" % (self.environ['REMOTE_ADDR'], channel))
         for m in r.listen():
+            if m.get('type') == 'subscribe':
+                continue
             Logger().log.debug('%s: emitting %s' % (self.environ['REMOTE_ADDR'], m))
             self.emit('radio_event', m)
 
@@ -89,6 +91,8 @@ class UserNamespace(BaseNamespace):
         r.subscribe(channel)
         Logger().log.debug("%s: subscribing to %s" % (self.environ['REMOTE_ADDR'], channel))
         for m in r.listen():
+            if m.get('type') == 'subscribe':
+                continue
             Logger().log.debug('%s: emitting %s' % (self.environ['REMOTE_ADDR'], m))
             self.emit('user_event', m)
 
