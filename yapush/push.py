@@ -16,19 +16,24 @@ monkey.patch_all()
 
 class RadioNamespace(BaseNamespace):
     def recv_connect(self):
-        Logger().log.debug('%s: received connect' % (self.environ['REMOTE_ADDR']))
+        Logger().log.debug('%s: RadioNamespace received connect' % (self.environ['REMOTE_ADDR']))
+
+    def recv_disconnect(self):
+        Logger().log.debug('%s: RadioNamespace received disconnect' % (self.environ['REMOTE_ADDR']))
+        self.disconnect(silent=True)
+        return True
 
     def recv_message(self, data):
-        Logger().log.debug('%s: received message: %s' % (self.environ['REMOTE_ADDR'], data))
+        Logger().log.debug('%s: RadioNamespace received message: %s' % (self.environ['REMOTE_ADDR'], data))
             
     def on_subscribe(self, data):
-        Logger().log.debug('%s: received on_subscribe: %s' % (self.environ['REMOTE_ADDR'], data))
+        Logger().log.debug('%s: RadioNamespace received on_subscribe: %s' % (self.environ['REMOTE_ADDR'], data))
         
         radio_id = data['radio_id']
         self.spawn(self.listener, radio_id)
         
     def on_unsubscribe(self, data):
-        Logger().log.debug('%s: unsubscribe received: %s' % (self.environ['REMOTE_ADDR'], data))
+        Logger().log.debug('%s: RadioNamespace unsubscribe received: %s' % (self.environ['REMOTE_ADDR'], data))
         self.kill_local_jobs()
         
     def listener(self, radio_id):
@@ -46,10 +51,19 @@ class RadioNamespace(BaseNamespace):
 
 class UserNamespace(BaseNamespace):
     def recv_connect(self):
-        Logger().log.debug('%s: received connect' % (self.environ['REMOTE_ADDR']))
+        Logger().log.debug('%s: UserNamespace received connect' % (self.environ['REMOTE_ADDR']))
+
+    def recv_disconnect(self):
+        Logger().log.debug('%s: UserNamespace received disconnect' % (self.environ['REMOTE_ADDR']))
+        self.disconnect(silent=True)
+        return True
+
+    def recv_error(self, packet):
+        Logger().log.debug('%s: UserNamespace received error' % (self.environ['REMOTE_ADDR']))
+        self.disconnect(silent=True)
 
     def recv_message(self, data):
-        Logger().log.debug('%s: received message: %s' % (self.environ['REMOTE_ADDR'], data))
+        Logger().log.debug('%s: UserNamespace received message: %s' % (self.environ['REMOTE_ADDR'], data))
             
     def on_subscribe(self, data):
         Logger().log.debug('%s: UserNamespace - received on_subscribe: %s' % (self.environ['REMOTE_ADDR'], data))
