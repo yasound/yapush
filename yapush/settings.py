@@ -14,9 +14,9 @@ KEY_FILE = '/etc/nginx/ssl/server.key'
 # transport methods allowed
 TRANSPORTS = (
     'websocket',
+    'xhr-polling',
     'htmlfile',
     'xhr-multipart',
-    'xhr-polling',
     'jsonp-polling'
 )
 
