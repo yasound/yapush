@@ -58,6 +58,13 @@ def deploy():
         run("/etc/init.d/yapush stop")
         run("/etc/init.d/yapush start", pty=False)
 
+def restart():
+    """[DISTANT] Restart process
+    """
+    with cd("%s/%s" % (WEBSITE_PATH, APP_PATH)):
+        run("/etc/init.d/yapush stop")
+        run("/etc/init.d/yapush start", pty=False)
+
 def test():
     """[DISTANT] restart services
     """
