@@ -12,16 +12,8 @@ def prod():
 
     env.forward_agent = 'True'
     env.hosts = [
-        'yas-web-01.ig-1.net',
-        'yas-web-02.ig-1.net',
-        'yas-web-03.ig-1.net',
-        'yas-web-04.ig-1.net',
-        'yas-web-05.ig-1.net',
-        'yas-web-06.ig-1.net',
-        'yas-web-07.ig-1.net',
         'yas-web-08.ig-1.net',
         'yas-web-09.ig-1.net',
-        'yas-web-10.ig-1.net',
     ]
     env.user = "customer"
     WEBSITE_PATH = "/data/vhosts/y/yapush/root/"
@@ -38,10 +30,11 @@ def dev():
     global DJANGO_MODE
     env.forward_agent = 'True'
     env.hosts = [
-        'sd-14796.dedibox.fr',
+        'yas-dev-01.ig-1.net',
+        'yas-dev-02.ig-1.net',
     ]
     env.user = "customer"
-    WEBSITE_PATH = "/var/www/push.yasound.com/root/"
+    WEBSITE_PATH = "/data/vhosts/y/yapush/root/"
     APP_PATH = "yapush"
     GIT_PATH = "git@github.com:yasound/yapush.git"
     BRANCH = "dev"
