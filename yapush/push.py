@@ -20,7 +20,10 @@ class RadioNamespace(BaseNamespace):
 
     def recv_disconnect(self):
         Logger().log.debug('%s: RadioNamespace received disconnect' % (self.environ['REMOTE_ADDR']))
-        self.disconnect(silent=True)
+        try:
+            self.disconnect(silent=True)
+        except Exception, e:
+            Logger().log.error(e)
         return True
 
     def recv_message(self, data):
@@ -46,7 +49,6 @@ class RadioNamespace(BaseNamespace):
         for m in r.listen():
             if m.get('type') == 'subscribe':
                 continue
-            Logger().log.debug('%s: emitting %s' % (self.environ['REMOTE_ADDR'], m))
             self.emit('radio_event', m)
 
 class UserNamespace(BaseNamespace):
@@ -55,12 +57,19 @@ class UserNamespace(BaseNamespace):
 
     def recv_disconnect(self):
         Logger().log.debug('%s: UserNamespace received disconnect' % (self.environ['REMOTE_ADDR']))
-        self.disconnect(silent=True)
+        try:
+            self.disconnect(silent=True)
+        except Exception, e:
+            Logger().log.error(e)
         return True
 
     def recv_error(self, packet):
         Logger().log.debug('%s: UserNamespace received error' % (self.environ['REMOTE_ADDR']))
-        self.disconnect(silent=True)
+        try:
+            self.disconnect(silent=True)
+        except Exception, e:
+            Logger().log.error(e)
+        return True
 
     def recv_message(self, data):
         Logger().log.debug('%s: UserNamespace received message: %s' % (self.environ['REMOTE_ADDR'], data))
@@ -101,13 +110,16 @@ class UserNamespace(BaseNamespace):
         for m in r.listen():
             if m.get('type') == 'subscribe':
                 continue
-            Logger().log.debug('%s: emitting %s' % (self.environ['REMOTE_ADDR'], m))
             self.emit('user_event', m)
 
 def handle(environ, start_response):
-    if environ['PATH_INFO'] == '/status/':
+    path = environ['PATH_INFO'] 
+    if path  == '/status/':
         start_response('200 OK', [('Content-Type', 'text/plain')])
         return ["OK"]
-    
-    return socketio_manage(environ, {'/radio': RadioNamespace, '/me': UserNamespace})
+    elif path.startswith('/socket.io'):
+        return socketio_manage(environ, {'/radio': RadioNamespace, '/me': UserNamespace})
+
+    start_response('200 OK', [('Content-Type', 'text/plain')])
+    return ["OK"]
 
