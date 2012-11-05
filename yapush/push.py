@@ -21,6 +21,7 @@ class RadioNamespace(BaseNamespace):
     def recv_disconnect(self):
         Logger().log.debug('%s: RadioNamespace received disconnect' % (self.environ['REMOTE_ADDR']))
         try:
+            self.kill_local_jobs()
             self.disconnect(silent=True)
         except Exception, e:
             Logger().log.error(e)
@@ -58,6 +59,7 @@ class UserNamespace(BaseNamespace):
     def recv_disconnect(self):
         Logger().log.debug('%s: UserNamespace received disconnect' % (self.environ['REMOTE_ADDR']))
         try:
+            self.kill_local_jobs()
             self.disconnect(silent=True)
         except Exception, e:
             Logger().log.error(e)
