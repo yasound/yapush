@@ -29,28 +29,30 @@ class RadioNamespace(BaseNamespace):
 
     def recv_message(self, data):
         Logger().log.debug('%s: RadioNamespace received message: %s' % (self.environ['REMOTE_ADDR'], data))
-            
-    def on_subscribe(self, data):
+
+    def on_subscribe(self, data, *args, **kwargs):
         Logger().log.debug('%s: RadioNamespace received on_subscribe: %s' % (self.environ['REMOTE_ADDR'], data))
-        
-        radio_id = data['radio_id']
-        self.spawn(self.listener, radio_id)
-        
+        radio_uuid = data.get('radio_uuid')
+        if radio_uuid is None:
+            return
+        self.spawn(self.listener, radio_uuid)
+
     def on_unsubscribe(self, data):
         Logger().log.debug('%s: RadioNamespace unsubscribe received: %s' % (self.environ['REMOTE_ADDR'], data))
         self.kill_local_jobs()
-        
-    def listener(self, radio_id):
+
+    def listener(self, radio_uuid):
         r = redis.StrictRedis(host=settings.REDIS_HOST, db=settings.REDIS_DB)
         r = r.pubsub()
 
-        channel = 'radio.%s' % (radio_id)
+        channel = 'radio.%s' % (radio_uuid)
         r.subscribe(channel)
         Logger().log.debug("%s: subscribing to %s" % (self.environ['REMOTE_ADDR'], channel))
         for m in r.listen():
             if m.get('type') == 'subscribe':
                 continue
             self.emit('radio_event', m)
+
 
 class UserNamespace(BaseNamespace):
     def recv_connect(self):
@@ -75,18 +77,18 @@ class UserNamespace(BaseNamespace):
 
     def recv_message(self, data):
         Logger().log.debug('%s: UserNamespace received message: %s' % (self.environ['REMOTE_ADDR'], data))
-            
+
     def on_subscribe(self, data):
         Logger().log.debug('%s: UserNamespace - received on_subscribe: %s' % (self.environ['REMOTE_ADDR'], data))
-        
+
         sessionid = data.get('sessionid')
         if not sessionid:
             Logger().log.debug('missing sessionid value')
             return
-        
+
         payload = {
             'sessionid': sessionid,
-            'key':settings.AUTH_SERVER_KEY
+            'key': settings.AUTH_SERVER_KEY
         }
         headers = {'content-type': 'application/json'}
         r = requests.post(settings.AUTH_SERVER, data=json.dumps(payload), headers=headers, verify=False)
@@ -97,11 +99,11 @@ class UserNamespace(BaseNamespace):
         data = json.loads(result)
         user_id = data['user_id']
         self.spawn(self.listener, user_id)
-        
+
     def on_unsubscribe(self, data):
         Logger().log.debug('%s: unsubscribe received: %s' % (self.environ['REMOTE_ADDR'], data))
         self.kill_local_jobs()
-        
+
     def listener(self, user_id):
         r = redis.StrictRedis(host=settings.REDIS_HOST, db=settings.REDIS_DB)
         r = r.pubsub()
@@ -114,9 +116,10 @@ class UserNamespace(BaseNamespace):
                 continue
             self.emit('user_event', m)
 
+
 def handle(environ, start_response):
-    path = environ['PATH_INFO'] 
-    if path  == '/status/':
+    path = environ['PATH_INFO']
+    if path == '/status/':
         start_response('200 OK', [('Content-Type', 'text/plain')])
         return ["OK"]
     elif path.startswith('/socket.io'):
@@ -124,4 +127,3 @@ def handle(environ, start_response):
 
     start_response('200 OK', [('Content-Type', 'text/plain')])
     return ["OK"]
-
